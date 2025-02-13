@@ -5,5 +5,17 @@ import DA.Time
 import DA.Date
 
 
+native_test = script do
 
+    alice <- allocateParty "Alice"
+    bob <- allocateParty "Bob"
+
+    let
+        _int = 255   --  int stores 64bits signed integers
+        _dec = 0.001 : Decimal 
+        _text = "Alice"
+        _bool = False
+        _date = date 2025 Feb 13
+        _time = time _date 00 00 00
+        _rel_time = hours 24
 
