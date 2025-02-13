@@ -20,6 +20,10 @@ template Token
 token_test_1 = script do
 
     israel <- allocateParty "investor"
+    timi <- allocateParty "timi"
 
     submit israel do
         createCmd Token with owner = israel
+    
+    submit timi do
+        createCmd Token with owner = timi
