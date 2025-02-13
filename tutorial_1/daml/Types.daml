@@ -19,3 +19,12 @@ native_test = script do
         _time = time _date 00 00 00
         _rel_time = hours 24
 
+    assert (alice /= bob)
+    assert (_int == 255)
+    assert (1000.0 * _dec == 1.0)
+    assert (_text == "Alice")
+    assert (not _bool)
+    assert (addDays _date 1 == date 2025 Feb 14)
+    assert (addRelTime _time _rel_time == time (addDays _date 1) 00 00 00)
+
+
