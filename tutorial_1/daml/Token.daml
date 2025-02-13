@@ -30,3 +30,7 @@ token_test_1 = script do
     
     submit timi do
         createCmd Token with owner = timi
+
+    --  A failed test where `timi` submits for party `israel`
+    submitMustFail timi do
+        createCmd Token with owner = israel
