@@ -1,0 +1,18 @@
+module Token where
+
+template CashBalance
+
+  with
+    accountant: Party
+    currency: Text
+    amount: Decimal
+    owner: Party
+    account_number: Text
+    bank: Party
+    bank_address: Text
+    bank_Telephone: Text
+
+  where
+    signatory accountant
+    
+    
