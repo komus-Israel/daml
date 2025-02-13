@@ -19,9 +19,12 @@ template Token
 --  scripts are used to test that a template behave as expected
 token_test_1 = script do
 
+    --  create parties and bind them to a variable
     israel <- allocateParty "investor"
     timi <- allocateParty "timi"
 
+    --  submit transaction via the submit keyword
+    --  sumbit take two arguments: the `Party` and the `Commands`
     submit israel do
         createCmd Token with owner = israel
     
