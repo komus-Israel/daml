@@ -1,0 +1,25 @@
+--  use the module keyword to import a module
+module Token where
+
+import Daml.Script
+
+--  A template is used to define the contract type that can be created and who
+--  who has the right to do so
+template Token
+
+    with
+        owner: Party
+
+    where
+        --  signatories required to take actions on the contract
+        --  every contract must have at least one signatory
+        signatory owner
+
+
+--  scripts are used to test that a template behave as expected
+token_test_1 = script do
+
+    israel <- allocateParty "investor"
+
+    submit israel do
+        createCmd Token with owner = israel
