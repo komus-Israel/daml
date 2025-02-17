@@ -27,7 +27,18 @@ template CashBalance
     account: Account
   where
     signatory accountant
-    
+
+    -- Choice `method` to update cash currency and amount
+    choice UpdateCash: ContractId CashBalance 
+      with
+        newCurrency: Text   --  parameter
+        newAmount: Decimal  --  parameter
+      controller accountant --  modifier on access control
+      do
+        create this with    --  update values
+          cash = Cash with 
+            currency = newCurrency
+            amount = newAmount 
     
 cash_balance_test = script do
 
