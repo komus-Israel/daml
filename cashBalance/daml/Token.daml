@@ -35,13 +35,25 @@ cash_balance_test = script do
   alice <- allocateParty "Alice"
   bob <- allocateParty "Bank of Bob"
 
+  let 
+    bank = Bank with
+      party = bob
+      address = "High Street"
+      telephone = "012 3456 789"
+
+    account = Account with
+      owner = alice
+      number = "ABC123"
+      bank = bank
+    
+    cash = Cash with
+      currency = "USD"
+      amount = 100.00
+
   submit accountant do
     createCmd CashBalance with 
       accountant
-      currency = "USD"
-      amount = 100.0
-      owner = alice
-      account_number = "ABC123"
-      bank = bob
-      bank_address = "High Street"
-      bank_telephone = "012 3456 789"
+      cash
+      account
+  
+  pure ()
