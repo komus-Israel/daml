@@ -5,6 +5,44 @@ import DA.Time
 import DA.Date
 import DA.Tuple
 
+--  Records
+--  Records are like named tuples with named fields
+--  Declared using `data T = C with`
+--  where `T` is the type name
+--  where `C` is the data constructor
+--  In good practice, its a good idea to always use the same name for type and data constructor
+--  similar to struct in solidity
+
+data MyRecord = MyRecord with
+    text    :   Text
+    int     :   Int 
+    dec     :   Decimal
+    list    :   [Text]
+
+--  Fields of smae type can be declared in one line
+data Coordinate = Coordinate with
+    x, y, z : Decimal
+
+
+record_test =  script do
+
+    let 
+        my_record = MyRecord with
+            text = "Test"
+            int = 12
+            dec = 3.142
+            list = ["one", "two", "three"]
+
+        
+        my_cord = Coordinate with 
+            x = 12.6
+            y = 45.9
+            z = 78.0
+
+    assert (my_record.text == "Test")
+    assert (my_record.int == 12)
+    assert (my_record.dec == 3.142)
+    
 
 native_test = script do
 
