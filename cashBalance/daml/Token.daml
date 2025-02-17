@@ -2,18 +2,29 @@ module Token where
 
 import Daml.Script
 
+data Bank = Bank with
+  party: Party
+  address: Text
+  telephone: Text
+    deriving (Eq, Show)
+
+data Account = Account with
+  owner: Party
+  number: Text
+  bank: Bank
+    deriving (Eq, Show)
+
+data Cash = Cash with
+  currency: Text
+  amount: Decimal
+    deriving(Eq, Show)
+
 template CashBalance
 
   with
     accountant: Party
-    currency: Text
-    amount: Decimal
-    owner: Party
-    account_number: Text
-    bank: Party
-    bank_address: Text
-    bank_telephone: Text
-
+    cash: Cash
+    account: Account
   where
     signatory accountant
     
