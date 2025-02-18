@@ -67,5 +67,19 @@ test_iou = script do
     exerciseCmd newIouContract Transfer with
       newOwner = holderB
 
+test_restrictions = script do
+  issuer <- allocateParty "Issuer"
+  holderA <- allocateParty "HolderA"
+  holderB <- allocateParty "HolderB"
 
+  let
+    cash = Cash with
+      currency = "usd"  --  | lower case currency: expected to fail
+      amount = 0.0      --  | zero amount: expected to fail
+
+  submitMustFail issuer do
+    createCmd SimpleIou with  
+      owner = issuer
+      issuer = issuer
+      cash = cash
 
