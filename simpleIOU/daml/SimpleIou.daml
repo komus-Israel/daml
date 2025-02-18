@@ -33,6 +33,9 @@ template SimpleIou
         newOwner: Party 
       controller owner
       do 
+        --  | AssertMsg with custom error message just like `require` in solidity
+        --  | New ownership cannot be self
+        assertMsg "new owner cannot be equal to owner." (owner /= newOwner)
         create this with 
           owner = newOwner 
 
