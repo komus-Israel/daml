@@ -61,10 +61,17 @@ cash_balance_test = script do
       currency = "USD"
       amount = 100.00
 
-  submit accountant do
+  contractId <- submit accountant do
     createCmd CashBalance with 
       accountant
       cash
       account
-  
+
+  --  Choice test
+  --  Update currency
+  newContractId <- submit accountant do
+    exerciseCmd contractId UpdateCash with
+      newCurrency = "NGN"
+      newAmount = 500.00
+
   pure ()
