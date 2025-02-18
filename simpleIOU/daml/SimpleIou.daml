@@ -23,8 +23,9 @@ template SimpleIou
     --  | This is implemented via the `ensure` keyword just like `require` in solidity
     --  | Example: Only positive values are allowed
     ensure cash.amount > 0.0
-      -- && T.length cash.currency == 3
-      -- && T.isUpper cash.currrency
+        && T.length cash.currency == 3
+        && T.isUpper cash.currency
+    --  | Restriction on IOU ends
 
     -- | Transfer the IOU to a new owner.
     choice Transfer : ContractId SimpleIou
