@@ -26,5 +26,30 @@ template SimpleIou
         create this with 
           owner = newOwner 
 
+test_iou = script do
+  issuer <- allocateParty "Issuer"
+  holderA <- allocateParty "HolderA"
+  holderB <- allocateParty "HolderB"
+
+  let
+    cash = Cash with
+      currency = "USD"
+      amount = 100000000.00
+
+  --  | create contract
+  --  | issues USD to issuer
+  iouContract <- submit issuer do 
+    createCmd SimpleIou with
+      owner = issuer
+      issuer = issuer
+      cash = cash
+
+  -- | current owner (issuer) excerises choice to transfer to holderA
+  submit issuer do
+    exerciseCmd iouContract Transfer with
+      newOwner = holderA
+
+
+
 
 
