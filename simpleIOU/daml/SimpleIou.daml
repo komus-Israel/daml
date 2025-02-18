@@ -45,11 +45,14 @@ test_iou = script do
       cash = cash
 
   -- | current owner (issuer) excerises choice to transfer to holderA
-  submit issuer do
+  newIouContract <- submit issuer do
     exerciseCmd iouContract Transfer with
       newOwner = holderA
 
-
+  -- | current owner (holderA) excerises choice to transfer to holderB
+  submit holderA do
+    exerciseCmd newIouContract Transfer with
+      newOwner = holderB
 
 
 
