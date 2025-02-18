@@ -27,13 +27,14 @@ template CashBalance
     account: Account
   where
     signatory accountant
+    observer account.owner
 
     -- Choice `method` to update cash currency and amount
     choice UpdateCash: ContractId CashBalance 
       with
         newCurrency: Text   --  parameter
         newAmount: Decimal  --  parameter
-      controller accountant --  modifier on access control
+      controller account.owner --  modifier on access control
       do
         create this with    --  update values
           cash = Cash with 
@@ -69,7 +70,7 @@ cash_balance_test = script do
 
   --  Choice test
   --  Update currency
-  newContractId <- submit accountant do
+  newContractId <- submit alice do
     exerciseCmd contractId UpdateCash with
       newCurrency = "NGN"
       newAmount = 500.00
