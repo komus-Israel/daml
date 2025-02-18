@@ -2,21 +2,44 @@ module Token where
 
 import Daml.Script
 
+data Bank = Bank with
+  party: Party
+  address: Text
+  telephone: Text
+    deriving (Eq, Show)
+
+data Account = Account with
+  owner: Party
+  number: Text
+  bank: Bank
+    deriving (Eq, Show)
+
+data Cash = Cash with
+  currency: Text
+  amount: Decimal
+    deriving(Eq, Show)
+
 template CashBalance
 
   with
     accountant: Party
-    currency: Text
-    amount: Decimal
-    owner: Party
-    account_number: Text
-    bank: Party
-    bank_address: Text
-    bank_telephone: Text
-
+    cash: Cash
+    account: Account
   where
     signatory accountant
-    
+    observer account.owner
+
+    -- Choice `method` to update cash currency and amount
+    choice UpdateCash: ContractId CashBalance 
+      with
+        newCurrency: Text   --  parameter
+        newAmount: Decimal  --  parameter
+      controller account.owner --  modifier on access control
+      do
+        create this with    --  update values
+          cash = Cash with 
+            currency = newCurrency
+            amount = newAmount 
     
 cash_balance_test = script do
 
@@ -24,13 +47,32 @@ cash_balance_test = script do
   alice <- allocateParty "Alice"
   bob <- allocateParty "Bank of Bob"
 
-  submit accountant do
+  let 
+    bank = Bank with
+      party = bob
+      address = "High Street"
+      telephone = "012 3456 789"
+
+    account = Account with
+      owner = alice
+      number = "ABC123"
+      bank = bank
+    
+    cash = Cash with
+      currency = "USD"
+      amount = 100.00
+
+  contractId <- submit accountant do
     createCmd CashBalance with 
       accountant
-      currency = "USD"
-      amount = 100.0
-      owner = alice
-      account_number = "ABC123"
-      bank = bob
-      bank_address = "High Street"
-      bank_telephone = "012 3456 789"
+      cash
+      account
+
+  --  Choice test
+  --  Update currency
+  newContractId <- submit alice do
+    exerciseCmd contractId UpdateCash with
+      newCurrency = "NGN"
+      newAmount = 500.00
+
+  pure ()
