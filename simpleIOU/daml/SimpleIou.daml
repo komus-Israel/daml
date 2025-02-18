@@ -1,6 +1,7 @@
 module SimpleIou where
 
 import Daml.Script
+import DA.Text as T
 
 data Cash = Cash with
   currency: Text
@@ -16,6 +17,14 @@ template SimpleIou
   where
     signatory issuer
     observer owner
+
+    --  | Template preconditions
+    --  | Restriction on data that can be stored in this template
+    --  | This is implemented via the `ensure` keyword just like `require` in solidity
+    --  | Example: Only positive values are allowed
+    ensure cash.amount > 0.0
+      -- && T.length cash.currency == 3
+      -- && T.isUpper cash.currrency
 
     -- | Transfer the IOU to a new owner.
     choice Transfer : ContractId SimpleIou
