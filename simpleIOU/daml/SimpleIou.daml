@@ -2,6 +2,7 @@ module SimpleIou where
 
 import Daml.Script
 import DA.Text as T
+import DA.Time
 
 data Cash = Cash with
   currency: Text
@@ -15,7 +16,7 @@ template SimpleIou
     issuer: Party   --  | The issuer of the IOU.
     cash: Cash
   where
-    signatory issuer
+    signatory issuer, owner
     observer owner
 
     --  | Template preconditions
@@ -39,66 +40,124 @@ template SimpleIou
         create this with 
           owner = newOwner 
 
-test_iou = script do
-  issuer <- allocateParty "Issuer"
-  holderA <- allocateParty "HolderA"
-  holderB <- allocateParty "HolderB"
+-- test_iou = script do
+--   issuer <- allocateParty "Issuer"
+--   holderA <- allocateParty "HolderA"
+--   holderB <- allocateParty "HolderB"
 
-  let
-    cash = Cash with
-      currency = "USD"
-      amount = 100000000.00
+--   let
+--     cash = Cash with
+--       currency = "USD"
+--       amount = 100000000.00
 
-  --  | create contract
-  --  | issues USD to issuer
-  iouContract <- submit issuer do 
-    createCmd SimpleIou with
-      owner = issuer
-      issuer = issuer
-      cash = cash
+--   --  | create contract
+--   --  | issues USD to issuer
+--   iouContract <- submit issuer do 
+--     createCmd SimpleIou with
+--       owner = issuer
+--       issuer = issuer
+--       cash = cash
 
-  -- | current owner (issuer) excerises choice to transfer to holderA
-  newIouContract <- submit issuer do
-    exerciseCmd iouContract Transfer with
-      newOwner = holderA
+--   -- | current owner (issuer) excerises choice to transfer to holderA
+--   newIouContract <- submit issuer do
+--     exerciseCmd iouContract Transfer with
+--       newOwner = holderA
 
-  -- | current owner (holderA) excerises choice to transfer to holderB
-  submit holderA do
-    exerciseCmd newIouContract Transfer with
-      newOwner = holderB
+--   -- | current owner (holderA) excerises choice to transfer to holderB
+--   submit holderA do
+--     exerciseCmd newIouContract Transfer with
+--       newOwner = holderB
 
-test_restrictions = script do
-  issuer <- allocateParty "Issuer"
-  holderA <- allocateParty "HolderA"
-  holderB <- allocateParty "HolderB"
+-- test_restrictions = script do
+--   issuer <- allocateParty "Issuer"
+--   holderA <- allocateParty "HolderA"
+--   holderB <- allocateParty "HolderB"
 
-  let
-    wrongCash = Cash with
-      currency = "usd"  --  | lower case currency: expected to fail
-      amount = 0.0      --  | zero amount: expected to fail
+--   let
+--     wrongCash = Cash with
+--       currency = "usd"  --  | lower case currency: expected to fail
+--       amount = 0.0      --  | zero amount: expected to fail
 
-    cash = Cash with
-      currency = "USD"
-      amount = 100000000.00
+--     cash = Cash with
+--       currency = "USD"
+--       amount = 100000000.00
 
-  --  | Test restriction on cash
-  submitMustFail issuer do
-    createCmd SimpleIou with  
-      owner = issuer
-      issuer = issuer
-      cash = wrongCash
+--   --  | Test restriction on cash
+--   submitMustFail issuer do
+--     createCmd SimpleIou with  
+--       owner = issuer
+--       issuer = issuer
+--       cash = wrongCash
 
-  --  | Test restriction on new ownership
-  --  | 1.  Create the contract
-  iouContract <- submit issuer do 
-    createCmd SimpleIou with
-      owner = issuer
-      issuer = issuer
-      cash = cash
+--   --  | Test restriction on new ownership
+--   --  | 1.  Create the contract
+--   iouContract <- submit issuer do 
+--     createCmd SimpleIou with
+--       owner = issuer
+--       issuer = issuer
+--       cash = cash
   
-  --  | 2. Try to transfer to self: expected to fail
-  submitMustFail issuer do
-    exerciseCmd iouContract Transfer with
-      newOwner = issuer
+--   --  | 2. Try to transfer to self: expected to fail
+--   submitMustFail issuer do
+--     exerciseCmd iouContract Transfer with
+--       newOwner = issuer
 
+-- simple_iou_test = script do
+--   alice <- allocateParty "Alice"
+--   bob <- allocateParty "Bob"
+
+--   let
+--     cash = Cash with
+--       currency = "USD"
+--       amount = 100000000.00
+
+--   --  | Alice and Bob enter into a trade
+--   --  | Alice transfers the payment as a simple IOU
+--   iou <- submit alice do
+--     createCmd SimpleIou with
+--       issuer = alice
+--       owner = bob
+--       cash = cash
+
+--   passTime (days 1)
+--   --  | Bob delivers the goods
+
+--   passTime (minutes 10)
+--   --  | Alice just deletes the payment
+
+--   submit alice do
+--     archiveCmd iou
+--   pure ()
+
+iou_test = script do
+  alice <- allocateParty "Alice"
+  bob <- allocateParty "Bob"
+
+  let
+    cash = Cash with
+      currency = "USD"
+      amount = 100000000.00
+
+  --  | Alice and Bob enter into a trade
+  --  | Alice wants to give Bob an Iou, but she can't without Bob's authority
+  iou <- submitMustFail alice do
+    createCmd SimpleIou with
+      issuer = alice
+      owner = bob
+      cash = cash
+
+  --  | Alice and Bob enter into a trade
+  --  | Alice can issue herself an Iou
+  iou <- submit alice do
+    createCmd SimpleIou with
+      issuer = alice
+      owner = alice
+      cash = cash
+
+  --  | However, she can't transfer it to Bob
+  submitMustFail alice do
+    exerciseCmd iou Transfer with
+      newOwner = bob
+  
+  pure ()
 
