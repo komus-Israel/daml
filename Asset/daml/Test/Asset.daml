@@ -1,0 +1,17 @@
+module Test.Asset where
+
+import Asset.Asset
+import Daml.Script
+
+asset_test = script do
+    issuer <- allocateParty "Issuer"
+    investor <- allocateParty "Investor"
+
+    submit issuer do
+        createCmd Asset with
+            owner = issuer
+            issuer = issuer
+            symbol = "USD"
+            quantity = 500.00
+            observers = []
+    pure ()
