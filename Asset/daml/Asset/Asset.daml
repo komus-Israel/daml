@@ -1,2 +1,19 @@
 module Asset.Asset where
 
+template Asset
+    with
+        owner : Party
+        issuer : Party
+        symbol : Text
+        quantity : Decimal
+        observers : [Party]
+    where
+        signatory
+            issuer, owner
+
+        ensure
+            quantity > 0.0
+
+        observer
+            observers
+    
