@@ -2,6 +2,8 @@
 module Iou where
 --  |   MODULE NAME END
 
+type IouCid = ContractId Iou
+
 template Iou
     --  |   CONSTRUCTOR DEFINITION
     with
@@ -25,4 +27,38 @@ template Iou
         observer observers
         --  |   OBSERVERS END
 
+        --  |   CHOICE DEFINITION
+        --  |   RETURN TYPE (IouCid, IouCid)
+        choice Iou_Split : (IouCid, IouCid)
+            with 
+                splitAmount: Decimal
+            controller owner
+            do 
+                let restAmount = amount - splitAmount
+                splitCid <- create this with
+                    amount = splitAmount
+                restCid <- create this with
+                    amount = restAmount
+                return (splitCid, restCid)
+        
+        choice Iou_Merge : IouCid
+            with
+                otherCid : IouCid
+            controller owner
+            do
+                otherIou <- fetch otherCid
+                --  |   Check the two IOU's are compatible
+                assertMsg "IOU's not compatible" (
+                    currency == otherIou.currency &&
+                    owner    == otherIou.owner    &&
+                    issuer   == otherIou.issuer 
+                    )
+
+                --  | Retrieve the old Iou
+                archive otherCid
+
+                --  | Return the merged Iou
+                create this with
+                    amount = amount + otherIou.amount
+        --  |   CHOICE DEFINITION END
 
