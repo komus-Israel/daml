@@ -1,3 +1,21 @@
 --  |   MODULE NAME
 module Iou where
 --  |   MODULE NAME END
+
+template Iou
+    --  |   CONSTRUCTOR DEFINITION
+    with
+        issuer      : Party
+        owner       : Party
+        currency    : Text
+        amount      : Decimal
+        observers   : [Party]
+    --  |   CONSTRUCTOR DEFINITION END
+    where
+
+        --  |   TEMPlATE PRECONDITION
+        ensure amount > 0.0
+
+        --  |   SIGNATORIES DEFINITION
+        signatory issuer, owner
+
