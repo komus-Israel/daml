@@ -1,0 +1,1 @@
+An asset holding model for transferable, fungible assets and a separate trade workflow.
