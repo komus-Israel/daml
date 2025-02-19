@@ -1,0 +1,36 @@
+module IouProposal where
+
+import SimpleIou
+import Daml.Script
+
+template IouProposal
+    with
+        iou : SimpleIou
+    where
+        signatory iou.issuer
+        observer iou.owner
+    
+        choice IouProposal_Accept
+            : ContractId SimpleIou
+            controller iou.owner
+            do
+                create iou 
+
+
+test_proposal = script do
+    alice <- allocateParty "Alice"
+    bob <- allocateParty "Bob"
+
+    let
+        cash = Cash with
+            currency = "USD"
+            amount = 100000000.00
+
+    submit alice do
+        createCmd IouProposal with
+            iou = SimpleIou with
+                issuer = alice
+                owner = bob
+                cash = cash
+
+    pure ()
