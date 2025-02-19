@@ -15,7 +15,14 @@ template Iou
 
         --  |   TEMPlATE PRECONDITION
         ensure amount > 0.0
+        --  |   TEMPlATE PRECONDITION END
 
         --  |   SIGNATORIES DEFINITION
         signatory issuer, owner
+        --  |   SIGNATORIES DEFINITION END
+
+        --  |   OBSERVERS
+        observer observers
+        --  |   OBSERVERS END
+
 
