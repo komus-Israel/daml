@@ -4,6 +4,7 @@ import Daml.Script
 import DA.Text as T
 import DA.Time
 
+
 data Cash = Cash with
   currency: Text
   amount: Decimal
@@ -39,6 +40,17 @@ template SimpleIou
         assertMsg "new owner cannot be equal to owner." (owner /= newOwner)
         create this with 
           owner = newOwner 
+    
+    choice ProposeTransfer:
+      ContractId IouTransferProposal
+      with 
+        newOwner : Party
+      controller owner
+      do
+        assertMsg "new owner cannot be equal to owner." (owner /= newOwner)
+        create IouTransferProposal with
+          iou = this
+          newOwner = newOwner 
 
 -- test_iou = script do
 --   issuer <- allocateParty "Issuer"
@@ -160,4 +172,32 @@ iou_test = script do
       newOwner = bob
   
   pure ()
+
+template IouTransferProposal
+    with
+        iou : SimpleIou
+        newOwner : Party
+    where
+        signatory iou.issuer
+        observer iou.owner, newOwner
+
+        --  |   Owner cancels transfer proposal
+        choice IouTransferProposal_Cancel:
+            ContractId SimpleIou
+            controller iou.owner
+            do
+                create iou
+
+        choice IouTransferProposal_Reject:
+            ContractId SimpleIou
+            controller newOwner
+            do
+                create iou
+        
+        choice IouTransferProposal_Accept:
+            ContractId SimpleIou
+            controller newOwner
+            do
+                create iou with
+                    owner = newOwner
 

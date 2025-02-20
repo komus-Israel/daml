@@ -21,16 +21,67 @@ test_proposal = script do
     alice <- allocateParty "Alice"
     bob <- allocateParty "Bob"
 
+    david <- allocateParty "David"
+
     let
         cash = Cash with
             currency = "USD"
             amount = 100000000.00
 
-    submit alice do
+    iouProposal <- submit alice do
         createCmd IouProposal with
             iou = SimpleIou with
                 issuer = alice
                 owner = bob
                 cash = cash
 
+    --  |   Bob authorizes his signature to issue an IOU to him
+    submit bob do
+        exerciseCmd iouProposal IouProposal_Accept 
+
+    --  |   David authorizes his signature alongside Alice's to issue an IOU to him
+    iouProposal <- submit alice do
+        createCmd IouProposal with
+            iou = SimpleIou with
+                issuer = alice
+                owner = david
+                cash = cash
+    submit david do
+        exerciseCmd iouProposal IouProposal_Accept
+
     pure ()
+
+test_transfer_proposal = script do
+    alice <- allocateParty "Alice"
+    bob <- allocateParty "Bob"
+    david <- allocateParty "David"
+
+    -- |    Alice issues an IOU using a tranfer proposal
+    tpab <- submit alice do
+        createCmd IouTransferProposal with
+            newOwner = bob
+            iou = SimpleIou with
+                issuer = alice
+                owner = alice
+                cash = Cash with
+                    currency = "USD"
+                    amount = 100000000.00
+    
+    --  |   Bob accepts the transfer from Alice
+    iou2 <- submit bob do
+        exerciseCmd tpab IouTransferProposal_Accept
+    
+    --  | Bob offers David a transfer
+    tpbd <- submit bob do
+        exerciseCmd iou2 ProposeTransfer with
+            newOwner = david
+    
+    --  |   David accepts the transfer
+    submit david do
+        exerciseCmd tpbd IouTransferProposal_Accept
+    pure()
+
+
+
+
+        
