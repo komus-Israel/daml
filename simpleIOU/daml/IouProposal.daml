@@ -77,10 +77,53 @@ test_transfer_proposal = script do
             newOwner = david
     
     --  |   David accepts the transfer
-    submit david do
+    iou3 <- submit david do
         exerciseCmd tpbd IouTransferProposal_Accept
+    
+    -- |   David transfers via the mutual transfer choice
+    -- submit david do
+    --     exerciseCmd iou3 MutualTransfer with
+    --         newOwner = david
     pure()
 
+
+test_multiple_iou_transefer = script do
+    alice <- allocateParty "Alice"
+    bob <- allocateParty "Bob"
+    david <- allocateParty "David"
+
+    -- |    Bob allows Alice to send him Ious
+    sab <- submit bob do
+        createCmd IouSender with
+            sender = alice
+            receiver = bob
+    
+    --  |   David allows Bob to send him Ious
+    sbd <- submit david do
+        createCmd IouSender with
+            sender = bob
+            receiver = david
+
+    --  |   Alice issues herself IOUS
+    iou <- submit alice do
+        createCmd SimpleIou with
+            issuer = alice
+            owner = alice
+            cash = Cash with
+                currency = "USD"
+                amount = 100000000.00
+
+    -- |   Alice sends the IOU to Bob
+    iou2 <- submit alice do
+        exerciseCmd sab Send_Iou with
+            iouCid = iou
+
+    --  |   Bob sends the IOU to David
+    submit bob do
+        exerciseCmd sbd Send_Iou with
+            iouCid = iou2
+            
+    pure()
 
 
 

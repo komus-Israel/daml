@@ -52,6 +52,15 @@ template SimpleIou
           iou = this
           newOwner = newOwner 
 
+    choice MutualTransfer:
+      ContractId SimpleIou
+      with
+        newOwner : Party
+      controller owner, newOwner
+      do
+        create this with
+          owner = newOwner
+
 -- test_iou = script do
 --   issuer <- allocateParty "Issuer"
 --   holderA <- allocateParty "HolderA"
@@ -201,3 +210,23 @@ template IouTransferProposal
                 create iou with
                     owner = newOwner
 
+
+template IouSender
+  with
+    sender : Party
+    receiver : Party
+  where
+    signatory receiver
+    observer sender 
+
+    nonconsuming choice Send_Iou
+      : ContractId SimpleIou
+      with
+        iouCid : ContractId SimpleIou
+      controller sender
+      do
+        iou <- fetch iouCid
+        assert (iou.cash.amount > 0.0)
+        assert (sender == iou.owner)
+        exercise iouCid MutualTransfer with
+          newOwner = receiver
