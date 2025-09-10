@@ -1,0 +1,31 @@
+module Test where
+import Daml.Script
+import IAsset
+
+
+
+
+-- | Parties
+data Parties = Parties with
+        alice
+            , bob
+            , charlie
+            : Party
+
+    deriving(Eq, Show, Ord)
+
+
+cashAssetTest : Script (ContractId IAsset)
+cashAssetTest = do
+    parties <- allocateParties
+
+
+
+
+-- | assetTxt : A label used for debugging
+-- | Parties: Structure containing the parties
+-- | mkAsset: a function that returns a contract value of type t when
+-- | given two Party arguments
+-- mkAssetTest assetTxt Parties {..} mkAsset = do
+
+    

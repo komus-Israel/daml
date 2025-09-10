@@ -1,0 +1,86 @@
+module Cash where
+
+import IAsset
+
+template Cash
+    with
+        issuer : Party
+        owner : Party
+        currency : Text
+        amount : Decimal
+    where
+        signatory issuer, owner
+        ensure amount > 0.0
+    
+        -- | Propose transfer
+        -- | Can only be called by the owner of the cash
+        -- | The proposal must be accepted by the recieving party
+        -- | The proposal doesn't update the cash contract with the new owner
+        -- | The proposal is a request to update the cash contract with the new owner
+        choice ProposeCashTransfer : ContractId CashTransferProposal
+            with newOwner: Party
+            controller owner
+            do
+                create CashTransferProposal with
+                    cash = this
+                    newOwner = newOwner
+
+        -- | Interface instance IAsset for Cash
+        -- | defined inside the body of the template
+        interface instance IAsset for Cash where
+            view = VAsset with
+                issuer
+                owner
+                description = show @Cash this
+
+            setOwner newOwner = 
+                toInterface @IAsset $
+                    this with
+                        owner = newOwner
+            
+            toTransferProposal newOwner =
+                toInterface @IAssetTransferProposal $
+                CashTransferProposal with
+                    cash = this
+                    newOwner
+
+
+-- | Template to propose transfer
+-- | The proposal must be accepted by the recieving party
+template CashTransferProposal
+    with 
+        cash : Cash
+        newOwner : Party
+    where
+        signatory (signatory cash)
+        observer newOwner
+
+        -- | Accept transfer
+        -- | Can only be called by the new owner of the cash
+        -- | The transfer is accepted by updating the cash contract with the new owner
+        choice AcceptCashTransferProposal : ContractId Cash
+            controller newOwner
+            do
+                create cash with
+                    owner = newOwner
+        
+        --  | Rejects the proposal
+        --  | cash ownership doesn't change
+        choice RejectCashTransferProposal : ContractId Cash
+            controller newOwner
+            do
+                create cash
+        
+        --  | The current cash owner can withdraw the proposal
+        choice WithdrawCashTransferProposal : ContractId Cash
+            controller cash.owner
+            do
+                create cash
+
+        interface instance IAssetTransferProposal for CashTransferProposal where
+            view = VAssetTransferProposal with
+                assetView = view (toInterface @IAsset cash)
+                newOwner
+
+            asset = toInterface @IAsset cash
+        

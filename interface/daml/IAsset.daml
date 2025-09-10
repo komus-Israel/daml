@@ -1,0 +1,53 @@
+-- | An interface to abstract the behaviour in SampleRevise.daml
+
+module IAsset where
+
+-- | View type definition
+data VAsset = VAsset with
+        issuer : Party
+        owner : Party
+        description: Text
+    deriving (Eq, Show, Ord)
+
+interface IAsset
+    where
+        -- | View type is mandatory for all interfaces
+        -- | All viewtypes must be serializable
+        viewtype VAsset
+
+        setOwner : Party -> IAsset
+        toTransferProposal : Party -> IAssetTransferProposal
+        
+        choice ProposeIAssetTransfer : ContractId IAssetTransferProposal
+            with newOwner: Party
+            controller (view this).owner
+            do
+                create (toTransferProposal this newOwner)
+
+
+-- | View type definition
+data VAssetTransferProposal = VAssetTransferProposal with
+        assetView : VAsset
+        newOwner : Party
+    deriving (Eq, Show)
+
+interface IAssetTransferProposal
+    where
+        viewtype VAssetTransferProposal
+
+        asset : IAsset
+
+        choice AcceptIAssetTransferProposal : ContractId IAsset
+            controller (view this).newOwner
+            do
+                create $ setOwner (asset this) (view this).newOwner
+        
+        choice RejectIAssetTransferProposal : ContractId IAsset
+            controller (view this).newOwner
+            do
+                create (asset this)
+
+        choice WithdrawIAssetTransferProposal : ContractId IAsset
+            controller (view (asset this)).owner
+            do
+                create (asset this)
